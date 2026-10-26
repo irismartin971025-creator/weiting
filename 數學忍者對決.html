@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數學忍者：分數與長度大對決</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+TC:wght@700;900&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans TC', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 650px;
+            height: 600px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(99, 102, 241, 0.3);
+            border: 3px solid rgba(129, 140, 248, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        h1 {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 3.2rem;
+            color: #fcd34d;
+            text-shadow: 0 4px 15px rgba(245, 158, 11, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 1.15rem;
+            color: #cbd5e1;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .game-header {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.9);
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+            z-index: 5;
+            font-weight: 900;
+            font-size: 1.1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .score-num { color: #fcd34d; font-size: 1.3rem; }
+        .combo-num { color: #34d399; font-size: 1.3rem; }
+        .lives-box { color: #f87171; font-size: 1.2rem; }
+
+        #game-arena {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .question-banner {
+            background: rgba(49, 46, 129, 0.8);
+            border: 2px solid #818cf8;
+            border-radius: 16px;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .q-tag {
+            font-size: 0.85rem;
+            color: #a5b4fc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .q-main {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .bubbles-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .bubble-btn {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(79, 70, 229, 0.4) 100%);
+            border: 2px solid #818cf8;
+            border-radius: 16px;
+            padding: 18px;
+            color: #fff;
+            font-size: 1.35rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bubble-btn:hover {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.4) 0%, rgba(99, 102, 241, 0.6) 100%);
+            border-color: #fcd34d;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .bubble-btn.correct {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+            border-color: #34d399 !important;
+            transform: scale(1.05);
+            animation: pulse-correct 0.4s ease;
+        }
+
+        .bubble-btn.wrong {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+            border-color: #f87171 !important;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes pulse-correct {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .score-board {
+            background: rgba(30, 41, 59, 0.95);
+            border: 2px solid #818cf8;
+            border-radius: 20px;
+            padding: 25px 40px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .final-score-val {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 4rem;
+            color: #34d399;
+            text-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+    <div id="start-screen" class="screen">
+        <h1>🥷 數學忍者大對決 ⚡</h1>
+        <p>歡迎來到四年級「分數與公里」極限挑戰！<br>流暢連擊、擊破難題，成為最強數學忍者吧！</p>
+        <button class="btn" onclick="startGame()">展開冒險</button>
+    </div>
+
+    <div id="game-screen" class="screen hidden" style="padding: 0; justify-content: flex-start;">
+        <div class="game-header">
+            <div class="stat-item">🏆 積分：<span class="score-num" id="score">0</span></div>
+            <div class="stat-item">🔥 連擊：<span class="combo-num" id="combo">0</span>x</div>
+            <div class="stat-item">生命：<span class="lives-box" id="lives">❤️❤️❤️</span></div>
+        </div>
+
+        <div id="game-arena">
+            <div class="question-banner">
+                <div class="q-tag" id="q-category">單元：分數與公里換算</div>
+                <div class="q-main" id="q-text">載入題目中...</div>
+            </div>
+
+            <div class="bubbles-container" id="options-grid"></div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen hidden">
+        <h1 id="end-title">🎉 戰鬥結束！</h1>
+        <div class="score-board">
+            <p style="margin: 0; color: #94a3b8;">最終獲得積分</p>
+            <div class="final-score-val" id="final-score">0</div>
+            <p id="end-remark" style="margin: 0; color: #fcd34d; font-weight: 900; font-size: 1.2rem;">太神啦！忍者大師誕生！</p>
+        </div>
+        <button class="btn" onclick="startGame()">再次挑戰</button>
+    </div>
+</div>
+
+<script>
+    const questionBank = [
+        { cat: "分數單元：假分數化帶分數", q: "7 / 3 的帶分數是？", options: ["2又1/3", "1又2/3", "2又2/3", "3又1/3"], ans: 0 },
+        { cat: "分數單元：帶分數化假分數", q: "1又3/4 的假分數是？", options: ["7/4", "5/4", "6/4", "4/4"], ans: 0 },
+        { cat: "分數單元：同分母加法", q: "3/7 ＋ 4/7 ＝ ？", options: ["7/7 (即 1)", "7/14", "1/7", "12/7"], ans: 0 },
+        { cat: "分數單元：帶分數減法", q: "3又4/5 － 1又2/5 ＝ ？", options: ["2又2/5", "1又2/5", "2又1/5", "12/5"], ans: 0 },
+        { cat: "公里單元：單位換算", q: "4080 公尺等於多少？", options: ["4公里 80公尺", "40公里 80公尺", "4公里 800公尺", "408公里"], ans: 0 },
+        { cat: "公里單元：步道計算", q: "步道全長 3公里450公尺，合多少？", options: ["3450公尺", "3045公尺", "345公尺", "3540公尺"], ans: 1 },
+        { cat: "公里單元：生活應用", q: "繞 800公尺公園跑 5 圈是？", options: ["4公里 0公尺", "3公里 800公尺", "4公里 500公尺", "5公里"], ans: 0 },
+        { cat: "公里單元：往返距離", q: "上學單程 2公里150公尺，來回共走？", options: ["4公里 300公尺", "4公里 150公尺", "5公里", "4公里 500公尺"], ans: 0 },
+        { cat: "公里單元：截彎取直", q: "7公里300公尺縮短 1公里600公尺剩？", options: ["5公里 700公尺", "5公里 600公尺", "6公里 300公尺", "6公里 700公尺"], ans: 0 },
+        { cat: "分數單元：假分數化帶分數", q: "17 / 5 的帶分數是？", options: ["3又2/5", "3又1/5", "2又3/5", "4又2/5"], ans: 0 }
+    ];
+
+    let currentPool = [];
+    let score = 0;
+    let combo = 0;
+    let lives = 3;
+    let currentQ = null;
+    let isLocked = false;
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+
+        score = 0;
+        combo = 0;
+        lives = 3;
+        currentPool = [...questionBank].sort(() => Math.random() - 0.5);
+        updateHUD();
+        nextQuestion();
+    }
+
+    function updateHUD() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('combo').innerText = combo;
+        let hearts = "";
+        for(let i=0; i<lives; i++) hearts += "❤️";
+        document.getElementById('lives').innerText = hearts;
+    }
+
+    function nextQuestion() {
+        if (currentPool.length === 0) {
+            currentPool = [...questionBank].sort(() => Math.random() - 0.5);
+        }
+        currentQ = currentPool.pop();
+        isLocked = false;
+
+        document.getElementById('q-category').innerText = currentQ.cat;
+        document.getElementById('q-text').innerText = currentQ.q;
+
+        let shuffledOpts = currentQ.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
+        shuffledOpts.sort(() => Math.random() - 0.5);
+
+        let grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+
+        shuffledOpts.forEach((item) => {
+            let btn = document.createElement('button');
+            btn.className = 'bubble-btn';
+            btn.innerText = item.text;
+            let isCorrect = (item.originalIdx === currentQ.ans);
+            btn.onclick = () => handleAnswer(isCorrect, btn);
+            grid.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(isCorrect, btn) {
+        if (isLocked) return;
+        isLocked = true;
+
+        let buttons = document.querySelectorAll('.bubble-btn');
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            combo++;
+            score += 10 + (combo * 5);
+            updateHUD();
+            setTimeout(nextQuestion, 600);
+        } else {
+            btn.classList.add('wrong');
+            buttons.forEach(b => {
+                let originalOpts = currentQ.options;
+                if (b.innerText === originalOpts[currentQ.ans]) {
+                    b.classList.add('correct');
+                }
+            });
+            combo = 0;
+            lives--;
+            updateHUD();
+
+            if (lives <= 0) {
+                setTimeout(endGame, 1000);
+            } else {
+                setTimeout(nextQuestion, 1200);
+            }
+        }
+    }
+
+    function endGame() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = score;
+
+        let remark = document.getElementById('end-remark');
+        if (score >= 250) {
+            remark.innerText = "🌟 太神啦！傳說中的數學忍者大師！";
+        } else if (score >= 120) {
+            remark.innerText = "👍 表現優異！觀念已經非常扎實囉！";
+        } else {
+            remark.innerText = "💪 別放棄！多挑戰幾次就能破高效能紀錄！";
+        }
+    }
+</script>
+
+</body>
+</html>
