@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角度計算大考驗 - 互動積分闖關遊戲</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #a8ede6);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+        }
+
+        .game-container {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        .bgm-bar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+        }
+        .bgm-btn {
+            background: #dfe6e9;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #2d3436;
+        }
+        .bgm-btn:hover { background: #b2bec3; }
+
+        h2 {
+            color: #2c3e50;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .question-card {
+            background: #f1f2f6;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .q-title {
+            font-size: 16px;
+            color: #2d3436;
+            font-weight: bold;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        /* 畫布圖片區 */
+        .canvas-box {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: #ffffff;
+            color: #2d3436;
+            border: 2px solid #b2bec3;
+            padding: 12px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover {
+            background-color: #0984e3;
+            color: white;
+            border-color: #0984e3;
+        }
+
+        #feedback {
+            font-size: 16px;
+            font-weight: bold;
+            min-height: 25px;
+            margin-top: 10px;
+        }
+        .correct { color: #00b894; }
+        .incorrect { color: #d63031; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .start-btn {
+            background-color: #0984e3;
+            color: white;
+            font-size: 18px;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(9, 132, 227, 0.4);
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .start-btn:hover { background-color: #74b9ff; }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="main-container">
+    <!-- 背景音樂開關 -->
+    <div class="bgm-bar">
+        <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()">🎵 音樂: 關</button>
+    </div>
+
+    <!-- 1. 開始畫面 -->
+    <div id="start-screen" class="screen active">
+        <h2>📐 角度計算大考驗</h2>
+        <p style="color: #636e72; font-size: 14px; margin-bottom: 20px;">觀察角度幾何圖形，計算出 ∠A ~ ∠F 分別是幾度！共 6 題大挑戰。</p>
+        <button class="start-btn" onclick="startGame()">開始挑戰 🚀</button>
+    </div>
+
+    <!-- 2. 遊戲進行畫面 -->
+    <div id="game-screen" class="screen">
+        <h2>✨ 角度計算闖關中</h2>
+        <div class="stats-bar">
+            <span>題目: <span id="current-q">1</span>/6</span>
+            <span>積分: <span id="score">0</span></span>
+            <span>生命: <span id="lives">❤️❤️❤️</span></span>
+        </div>
+
+        <div class="question-card">
+            <div class="q-title" id="question-text">載入中...</div>
+            <!-- 動態繪製角度圖形的 Canvas -->
+            <div class="canvas-box">
+                <canvas id="angleCanvas" width="260" height="160"></canvas>
+            </div>
+            <div class="options-container" id="mc-options">
+                <!-- 動態生成選項 -->
+            </div>
+        </div>
+
+        <div id="feedback"></div>
+    </div>
+
+    <!-- 3. 結算畫面 -->
+    <div id="end-screen" class="screen">
+        <h2 id="end-title">🎉 恭喜完成全部挑戰！</h2>
+        <p id="end-message" style="font-size: 16px; color: #2d3436; margin: 20px 0;"></p>
+        <button class="start-btn" onclick="startGame()">再玩一次 ⭐</button>
+    </div>
+</div>
+
+<script>
+    const angleQuestions = [
+        {
+            title: "(1) 求平角上的 ∠A 是幾度？ (提示：180° - 120°)",
+            type: "flat", given: 120, label: "A",
+            options: ["① 60 度", "② 45 度", "③ 155 度", "④ 210 度"], ans: 0
+        },
+        {
+            title: "(2) 求直角內的 ∠B 是幾度？ (提示：90° - 45°)",
+            type: "right", given: 45, label: "B",
+            options: ["① 60 度", "② 45 度", "③ 155 度", "④ 210 度"], ans: 1
+        },
+        {
+            title: "(3) 求平角上的 ∠C 是幾度？ (提示：180° - 25°)",
+            type: "flat_rev", given: 25, label: "C",
+            options: ["① 60 度", "② 155 度", "③ 45 度", "④ 210 度"], ans: 1
+        },
+        {
+            title: "(4) 求優角另一側的 ∠D 是幾度？ (提示：360° - 150°)",
+            type: "reflex", given: 150, label: "D",
+            options: ["① 210 度", "② 270 度", "③ 73 度", "④ 155 度"], ans: 0
+        },
+        {
+            title: "(5) 求直角交錯的 ∠E 是幾度？ (提示：360° - 90°)",
+            type: "cross", given1: 137, given2: 133, label: "E",
+            options: ["① 210 度", "② 270 度", "③ 73 度", "④ 45 度"], ans: 1
+        },
+        {
+            title: "(6) 求合併後的 ∠F 是幾度？ (提示：53° + 20°)",
+            type: "combine", given1: 53, given2: 20, label: "F",
+            options: ["① 210 度", "② 73 度", "③ 270 度", "④ 155 度"], ans: 1
+        }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let lives = 3;
+
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playCorrectSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let now = audioCtx.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.3, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.25);
+        });
+    }
+
+    function playWrongSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let now = audioCtx.currentTime;
+        [220, 165].forEach((freq, idx) => {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+            gain.gain.setValueAtTime(0.25, now + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.12);
+            osc.stop(now + idx * 0.12 + 0.2);
+        });
+    }
+
+    let bgmInterval = null;
+    let isBgmPlaying = false;
+    function toggleBGM() {
+        initAudio();
+        isBgmPlaying = !isBgmPlaying;
+        const btn = document.getElementById("bgm-toggle");
+        if (isBgmPlaying) {
+            btn.innerText = "🎵 音樂: 開";
+            startBGM();
+        } else {
+            btn.innerText = "🎵 音樂: 關";
+            stopBGM();
+        }
+    }
+
+    function startBGM() {
+        if (bgmInterval) return;
+        const notes = [329.63, 329.63, 392.00, 392.00, 329.63, 329.63, 261.63];
+        let index = 0;
+        bgmInterval = setInterval(() => {
+            if (!isBgmPlaying || !audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(notes[index], audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+            index = (index + 1) % notes.length;
+        }, 300);
+    }
+
+    function stopBGM() {
+        if (bgmInterval) {
+            clearInterval(bgmInterval);
+            bgmInterval = null;
+        }
+    }
+
+    function startGame() {
+        initAudio();
+        currentIndex = 0;
+        score = 0;
+        lives = 3;
+
+        document.getElementById("start-screen").classList.remove("active");
+        document.getElementById("end-screen").classList.remove("active");
+        document.getElementById("game-screen").classList.add("active");
+
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (lives <= 0) {
+            endGame(false);
+            return;
+        }
+        if (currentIndex >= angleQuestions.length) {
+            endGame(true);
+            return;
+        }
+
+        const item = angleQuestions[currentIndex];
+
+        document.getElementById("current-q").innerText = currentIndex + 1;
+        document.getElementById("score").innerText = score;
+        document.getElementById("lives").innerText = "❤️".repeat(lives);
+        document.getElementById("question-text").innerText = item.title;
+        document.getElementById("feedback").innerText = "";
+
+        drawAngle(item);
+
+        const mcOptions = document.getElementById("mc-options");
+        mcOptions.innerHTML = "";
+        item.options.forEach((opt, idx) => {
+            let btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(idx, item.ans);
+            mcOptions.appendChild(btn);
+        });
+    }
+
+    function drawAngle(item) {
+        const canvas = document.getElementById("angleCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = "#2d3436";
+        ctx.lineWidth = 2.5;
+        ctx.fillStyle = "#2d3436";
+        ctx.font = "bold 14px 'Segoe UI'";
+
+        const cx = 130, cy = 110;
+
+        if (item.type === "flat") {
+            ctx.beginPath();
+            ctx.moveTo(30, cy); ctx.lineTo(230, cy); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy); ctx.lineTo(cx - 40, cy - 60); ctx.stroke();
+            ctx.fillText(`${item.given}°`, cx + 25, cy - 25);
+            ctx.fillText(`∠${item.label}`, cx - 25, cy - 25);
+        } else if (item.type === "right") {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + 30); ctx.lineTo(cx, cy - 50); ctx.stroke();
+            ctx.moveTo(cx, cy + 30); ctx.lineTo(cx + 60, cy + 30); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + 30); ctx.lineTo(cx + 45, cy - 35); ctx.stroke();
+            ctx.fillText(`${item.given}°`, cx + 30, cy);
+            ctx.fillText(`∠${item.label}`, cx + 8, cy - 5);
+        } else if (item.type === "flat_rev") {
+            ctx.beginPath();
+            ctx.moveTo(30, cy); ctx.lineTo(230, cy); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy); ctx.lineTo(cx + 50, cy - 50); ctx.stroke();
+            ctx.fillText(`${item.given}°`, cx - 50, cy - 20);
+            ctx.fillText(`∠${item.label}`, cx + 25, cy - 20);
+        } else if (item.type === "reflex") {
+            ctx.beginPath();
+            ctx.moveTo(50, cy - 30); ctx.lineTo(cx, cy); ctx.lineTo(210, cy); ctx.stroke();
+            ctx.fillText(`${item.given}°`, cx + 25, cy - 20);
+            ctx.fillText(`∠${item.label}`, cx - 35, cy + 25);
+            ctx.beginPath();
+            ctx.arc(cx, cy, 25, 0, Math.PI * 1.2);
+            ctx.stroke();
+        } else if (item.type === "cross") {
+            ctx.beginPath();
+            ctx.moveTo(70, cy); ctx.lineTo(190, cy); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - 50); ctx.lineTo(cx, cy + 50); ctx.stroke();
+            ctx.strokeRect(cx - 12, cy, 12, 12);
+            ctx.fillText(`${item.given1}°`, cx - 45, cy - 20);
+            ctx.fillText(`${item.given2}°`, cx + 15, cy + 30);
+            ctx.fillText(`∠${item.label}`, cx + 35, cy - 20);
+        } else if (item.type === "combine") {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + 30); ctx.lineTo(cx - 60, cy - 30); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + 30); ctx.lineTo(cx + 10, cy - 50); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy + 30); ctx.lineTo(cx + 60, cy - 30); ctx.stroke();
+            ctx.fillText(`${item.given1}°`, cx - 35, cy - 5);
+            ctx.fillText(`${item.given2}°`, cx + 15, cy - 15);
+            ctx.fillText(`∠${item.label}`, cx - 20, cy - 40);
+        }
+    }
+
+    function checkAnswer(userIndex, correctIndex) {
+        const feedbackEl = document.getElementById("feedback");
+
+        if (userIndex === correctIndex) {
+            playCorrectSound();
+            feedbackEl.className = "correct";
+            feedbackEl.innerText = "✨ 太棒了！答對囉！ +10 分";
+            score += 10;
+            document.getElementById("score").innerText = score;
+
+            setTimeout(() => {
+                currentIndex++;
+                loadQuestion();
+            }, 1200);
+        } else {
+            handleWrong();
+        }
+    }
+
+    function handleWrong() {
+        playWrongSound();
+        lives--;
+        document.getElementById("lives").innerText = "❤️".repeat(lives);
+        
+        const container = document.getElementById("main-container");
+        container.classList.remove("shake");
+        void container.offsetWidth;
+        container.classList.add("shake");
+
+        const feedbackEl = document.getElementById("feedback");
+        feedbackEl.className = "incorrect";
+        if (lives > 0) {
+            feedbackEl.innerText = `❌ 哎呀選錯了，再試一次看看！還剩 ${lives} 條命。`;
+        } else {
+            endGame(false);
+        }
+    }
+
+    function endGame(isWin) {
+        document.getElementById("game-screen").classList.remove("active");
+        document.getElementById("end-screen").classList.add("active");
+        const endTitle = document.getElementById("end-title");
+        const endMessage = document.getElementById("end-message");
+
+        if (isWin) {
+            endTitle.innerText = "🏆 太厲害了！角度計算全部通關！";
+            endMessage.innerHTML = `你順利完成了所有 6 道角度計算題！<br>最終獲得總積分：<b>${score}</b> 分 ⭐`;
+        } else {
+            endTitle.innerText = "💥 挑戰失敗";
+            endMessage.innerHTML = `生命值用完囉！不要氣餒，再算一次計算紙挑戰一次吧！<br>最終得分：<b>${score}</b> 分`;
+        }
+    }
+</script>
+
+</body>
+</html>
