@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文拼字三關大挑戰 (身體症狀篇)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+        }
+
+        .game-container {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-sizing: border-box;
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .bounce { animation: bounceIn 0.4s ease-out; }
+
+        .bgm-bar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+        }
+        .bgm-btn {
+            background: #dfe6e9;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #2d3436;
+            transition: 0.2s;
+        }
+        .bgm-btn:hover { background: #b2bec3; transform: scale(1.05); }
+
+        h2 {
+            color: #2c3e50;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .stage-title {
+            background: #0984e3;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        .challenge-box {
+            background: #dfe6e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .clash-text {
+            font-size: 20px;
+            color: #2d3436;
+            font-weight: bold;
+            letter-spacing: 1px;
+            word-break: break-all;
+        }
+        .sub-clash {
+            font-size: 14px;
+            color: #636e72;
+            margin-top: 5px;
+        }
+        .audio-btn {
+            background-color: #00b894;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            transition: 0.2s;
+        }
+        .audio-btn:hover { background-color: #00a884; transform: scale(1.05); }
+        
+        input[type="text"] {
+            width: 90%;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #b2bec3;
+            border-radius: 8px;
+            outline: none;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #0984e3;
+            box-shadow: 0 0 8px rgba(9, 132, 227, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button.action-btn {
+            padding: 10px 18px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: 0.2s;
+        }
+        button.action-btn:active { transform: scale(0.95); }
+        .submit-btn { background-color: #0984e3; }
+        .submit-btn:hover { background-color: #74b9ff; }
+        .hint-btn { background-color: #fdcb6e; color: #2d3436 !important; }
+        .hint-btn:hover { background-color: #ffeaa7; }
+        
+        #feedback {
+            font-size: 15px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        .correct { color: #00b894; }
+        .incorrect { color: #d63031; }
+
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s ease-out; }
+        
+        .start-btn {
+            background-color: #6c5ce7;
+            color: white;
+            font-size: 18px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+            transition: 0.3s;
+        }
+        .start-btn:hover { 
+            background-color: #5849be; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="main-container">
+    <div class="bgm-bar">
+        <button class="bgm-btn" id="bgm-toggle" onclick="toggleBGM()">🎵 背景音樂: 關</button>
+    </div>
+
+    <!-- 1. 開始畫面 -->
+    <div id="start-screen" class="screen active">
+        <h2>🤧 身體症狀英文拼字挑戰</h2>
+        <p style="color: #636e72; font-size: 14px; margin-bottom: 20px;">身體不適與症狀單字，每關 6 題挑戰！</p>
+        <div style="background: #f1f2f6; padding: 15px; border-radius: 8px; text-align: left; font-size: 13px; color: #2f3640; margin-bottom: 20px; line-height: 1.6;">
+            🗺️ <b>遊戲規則：</b><br>
+            • <b>Stage 1</b>：聽音辨字 (共 6 題，每題 10 分)<br>
+            • <b>Stage 2</b>：字母重組 (共 6 題，每題 15 分)<br>
+            • <b>Stage 3</b>：中文快譯 (共 6 題，每題 20 分)<br>
+            ❤️ <b>生命值：</b>全場共用 3 條命，扣完即挑戰失敗！
+        </div>
+        <button class="start-btn" onclick="startGame()">開始冒險</button>
+    </div>
+
+    <!-- 2. 遊戲進行畫面 -->
+    <div id="game-screen" class="screen">
+        <h2>🏰 冒險競技場</h2>
+        <div>
+            <span class="stage-title" id="stage-indicator">Stage 1: 基礎聽力特訓</span>
+        </div>
+        <div class="stats-bar">
+            <span>關卡: <span id="current-stage-num">1</span>/3</span>
+            <span>進度: <span id="current-q-num">1</span>/6 題</span>
+            <span>分數: <span id="score">0</span></span>
+            <span>生命: <span id="lives">❤️❤️❤️</span></span>
+        </div>
+
+        <div class="challenge-box" id="challenge-box">
+            <div class="clash-text" id="clash-prompt">載入中...</div>
+            <div class="sub-clash" id="clash-sub"></div>
+            <button class="audio-btn" id="audio-trigger" onclick="speakCurrentWord()" style="display:none;">🔊 播放語音提示</button>
+        </div>
+        
+        <input type="text" id="user-input" placeholder="請輸入正確英文單字..." autocomplete="off">
+        
+        <div class="btn-group">
+            <button class="action-btn submit-btn" onclick="checkAnswer()">提交答案</button>
+            <button class="action-btn hint-btn" onclick="showHint()">💡 提示</button>
+        </div>
+        
+        <div id="feedback"></div>
+    </div>
+
+    <!-- 3. 結算畫面 -->
+    <div id="end-screen" class="screen">
+        <h2 id="end-title">🎉 挑戰結束！</h2>
+        <p id="end-message" style="font-size: 16px; color: #2d3436; margin: 20px 0;"></p>
+        <button class="start-btn" onclick="restartGame()">再玩一次</button>
+    </div>
+</div>
+
+<script>
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playCorrectSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let now = audioCtx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.3, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.25);
+        });
+    }
+
+    function playWrongSound() {
+        initAudio();
+        if (!audioCtx) return;
+        let now = audioCtx.currentTime;
+        const freqs = [220, 165];
+        freqs.forEach((freq, idx) => {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+            gain.gain.setValueAtTime(0.25, now + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.12);
+            osc.stop(now + idx * 0.12 + 0.2);
+        });
+    }
+
+    let bgmInterval = null;
+    let isBgmPlaying = false;
+
+    function toggleBGM() {
+        initAudio();
+        isBgmPlaying = !isBgmPlaying;
+        const btn = document.getElementById("bgm-toggle");
+        if (isBgmPlaying) {
+            btn.innerText = "🎵 背景音樂: 開";
+            startBGM();
+        } else {
+            btn.innerText = "🎵 背景音樂: 關";
+            stopBGM();
+        }
+    }
+
+    function startBGM() {
+        if (bgmInterval) return;
+        const notes = [329.63, 329.63, 392.00, 392.00, 329.63, 329.63, 261.63];
+        let index = 0;
+        bgmInterval = setInterval(() => {
+            if (!isBgmPlaying || !audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(notes[index], audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+            index = (index + 1) % notes.length;
+        }, 300);
+    }
+
+    function stopBGM() {
+        if (bgmInterval) {
+            clearInterval(bgmInterval);
+            bgmInterval = null;
+        }
+    }
+
+    const vocabList = [
+        { en: "cold", zh: "感冒" },
+        { en: "cough", zh: "咳嗽" },
+        { en: "fever", zh: "發燒" },
+        { en: "headache", zh: "頭痛" },
+        { en: "stomachache", zh: "胃痛 / 肚子痛" },
+        { en: "toothache", zh: "牙痛" },
+        { en: "runny nose", zh: "流鼻水" },
+        { en: "sore throat", zh: "喉嚨痛" },
+        { en: "wrong", zh: "怎麼了 / 有毛病的" }
+    ];
+
+    let currentStageIndex = 0;
+    let currentQuestionIndex = 0;
+    let stageQuestions = [];
+    let score = 0;
+    let lives = 3;
+
+    const startScreen = document.getElementById("start-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const endScreen = document.getElementById("end-screen");
+    const mainContainer = document.getElementById("main-container");
+    const challengeBox = document.getElementById("challenge-box");
+
+    const stageIndicator = document.getElementById("stage-indicator");
+    const currentStageNumEl = document.getElementById("current-stage-num");
+    const currentQNumEl = document.getElementById("current-q-num");
+    const scoreEl = document.getElementById("score");
+    const livesEl = document.getElementById("lives");
+    const clashPromptEl = document.getElementById("clash-prompt");
+    const clashSubEl = document.getElementById("clash-sub");
+    const audioTriggerEl = document.getElementById("audio-trigger");
+    const userInputEl = document.getElementById("user-input");
+    const feedbackEl = document.getElementById("feedback");
+
+    function generateStageQuestions() {
+        let doubleList = [...vocabList, ...vocabList];
+        for (let i = doubleList.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [doubleList[i], doubleList[j]] = [doubleList[j], doubleList[i]];
+        }
+        return doubleList.slice(0, 6);
+    }
+
+    function scrambleWord(word) {
+        let arr = word.split('');
+        let scrambled = "";
+        do {
+            let shuffled = [...arr];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            scrambled = shuffled.join(' ');
+        } while (scrambled.replace(/\s/g, '') === word && word.length > 1);
+        return scrambled;
+    }
+
+    function startGame() {
+        initAudio();
+        currentStageIndex = 0;
+        currentQuestionIndex = 0;
+        score = 0;
+        lives = 3;
+        stageQuestions = generateStageQuestions();
+        startScreen.classList.remove("active");
+        endScreen.classList.remove("active");
+        gameScreen.classList.add("active");
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (lives <= 0) {
+            endGame(false);
+            return;
+        }
+
+        if (currentQuestionIndex >= 6) {
+            currentStageIndex++;
+            currentQuestionIndex = 0;
+            if (currentStageIndex >= 3) {
+                endGame(true);
+                return;
+            }
+            stageQuestions = generateStageQuestions();
+        }
+
+        const item = stageQuestions[currentQuestionIndex];
+
+        currentStageNumEl.innerText = currentStageIndex + 1;
+        currentQNumEl.innerText = currentQuestionIndex + 1;
+        scoreEl.innerText = score;
+        livesEl.innerText = "❤️".repeat(lives);
+        userInputEl.value = "";
+        feedbackEl.innerText = "";
+        userInputEl.disabled = false;
+
+        challengeBox.classList.remove("bounce");
+        void challengeBox.offsetWidth;
+        challengeBox.classList.add("bounce");
+
+        if (currentStageIndex === 0) {
+            stageIndicator.innerText = "Stage 1: 基礎聽力特訓 (每題 10 分)";
+            clashPromptEl.innerText = "請點擊下方按鈕聽發音並拼字";
+            clashSubEl.innerText = `中文提示：${item.zh}`;
+            audioTriggerEl.style.display = "inline-block";
+            speakWord(item.en);
+        } else if (currentStageIndex === 1) {
+            stageIndicator.innerText = "Stage 2: 智慧密碼重組 (每題 15 分)";
+            clashPromptEl.innerText = scrambleWord(item.en);
+            clashSubEl.innerText = `中文提示：${item.zh} (將上方打亂的字母重組)`;
+            audioTriggerEl.style.display = "none";
+        } else {
+            stageIndicator.innerText = "Stage 3: 王牌中文快譯 (每題 20 分)";
+            clashPromptEl.innerText = item.zh;
+            clashSubEl.innerText = "請根據中文意思拼出正確英文單字";
+            audioTriggerEl.style.display = "none";
+        }
+    }
+
+    function speakWord(textToSpeak) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function speakCurrentWord() {
+        const item = stageQuestions[currentQuestionIndex];
+        speakWord(item.en);
+    }
+
+    function checkAnswer() {
+        const item = stageQuestions[currentQuestionIndex];
+        const userVal = userInputEl.value.trim().toLowerCase();
+        const correctVal = item.en.toLowerCase();
+
+        if (userVal === correctVal) {
+            playCorrectSound();
+            feedbackEl.className = "correct bounce";
+            
+            let points = 10;
+            if (currentStageIndex === 1) points = 15;
+            if (currentStageIndex === 2) points = 20;
+
+            score += points;
+            scoreEl.innerText = score;
+            feedbackEl.innerText = `✨ 答對了！ +${points} 分`;
+            userInputEl.disabled = true;
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 1400);
+        } else {
+            playWrongSound();
+            lives--;
+            livesEl.innerText = "❤️".repeat(lives);
+            
+            mainContainer.classList.remove("shake");
+            void mainContainer.offsetWidth;
+            mainContainer.classList.add("shake");
+
+            feedbackEl.className = "incorrect";
+            if (lives > 0) {
+                feedbackEl.innerText = `❌ 答錯囉！扣 1 條命，還剩 ${lives} 條命。`;
+            } else {
+                endGame(false);
+            }
+        }
+    }
+
+    function showHint() {
+        const item = stageQuestions[currentQuestionIndex];
+        const correctVal = item.en;
+        feedbackEl.className = "";
+        feedbackEl.style.color = "#d35400";
+        feedbackEl.innerText = `💡 提示：字數共 ${correctVal.length} 個字元，首字為 "${correctVal[0]}"`;
+    }
+
+    function endGame(isWin) {
+        gameScreen.classList.remove("active");
+        endScreen.classList.add("active");
+        const endTitle = document.getElementById("end-title");
+        const endMessage = document.getElementById("end-message");
+
+        if (isWin) {
+            endTitle.innerText = "🏆 恭喜完全通關！";
+            endMessage.innerHTML = `太強了！你成功通過所有 3 個關卡（共 18 題）！<br>最終總得分：<b>${score}</b> 分`;
+        } else {
+            endTitle.innerText = "💥 挑戰失敗";
+            endMessage.innerHTML = `生命值耗盡囉！不要氣餒，再挑戰一次一定能通關！<br>最終得分：<b>${score}</b> 分`;
+        }
+    }
+
+    userInputEl.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            checkAnswer();
+        }
+    });
+
+    const restartGame = startGame;
+</script>
+
+</body>
+</html>
